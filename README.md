@@ -1,3 +1,0 @@
-# LSP IDO integration
-
-WIP

@@ -46,12 +46,67 @@
     (:kind :name :location :textualRepresentation)
     (:containerName :deprecated))))
 
+(defcustom lsp-ido-symbol-kind-to-string
+  ["    "	   ; Unknown - 0
+   "File"	   ; File - 1
+   "Modu"	   ; Module - 2
+   "Nmsp"	   ; Namespace - 3
+   "Pack"	   ; Package - 4
+   "Clss"	   ; Class - 5
+   "Meth"          ; Method - 6
+   "Prop"	   ; Property - 7
+   "Fld "	   ; Field - 8
+   "Cons"          ; Constructor - 9
+   "Enum"	   ; Enum - 10
+   "Intf"	   ; Interface - 11
+   "Func"          ; Function - 12
+   "Var "          ; Variable - 13
+   "Cnst"	   ; Constant - 14
+   "Str "	   ; String - 15
+   "Num "	   ; Number - 16
+   "Bool "	   ; Boolean - 17
+   "Arr "	   ; Array - 18
+   "Obj "	   ; Object - 19
+   "Key "	   ; Key - 20
+   "Null"	   ; Null - 21
+   "EmMm"	   ; EnumMember - 22
+   "Srct"	   ; Struct - 23
+   "Evnt"	   ; Event - 24
+   "Op  "          ; Operator - 25
+   "TPar"]          ; TypeParameter - 26
+  "A vector of 26 itens representing the SymbolKind."
+  :group 'lsp-ido
+  :type 'vector
+  )
+
+(defcustom lsp-ido-show-symbol-filename
+  t
+  "Whether to show the project-relative path to a symbol's point of definition."
+  :group 'lsp-ido
+  :type 'boolean)
+
+(defcustom lsp-ido-show-symbol-kind
+  t
+  "Whether to show the symbol's kind when showing lsp symbols."
+  :group 'lsp-ido
+  :type 'boolean)
+
 (lsp-defun lsp-ido--transform-candidate
-  ((symbol-information &as &SymbolInformation)
-   lsp-ido--results)
-  (let* ((textual-representation
-	  (lsp-render-symbol-information symbol-information ".")))
-    (puthash textual-representation symbol-information lsp-ido--results)))
+  ((symbol-information &as &SymbolInformation :kind :location (&Location :uri))
+   lsp-ido--results project-root)
+  (let* ((sanitized-kind (if (< kind (length lsp-ido-symbol-kind-to-string)) kind 0))
+	 (type (elt lsp-ido-symbol-kind-to-string sanitized-kind))
+	 (typestr (if lsp-ido-show-symbol-kind
+		      (format "[%s] " type)
+		    ""))
+	 (pathstr (if lsp-ido-show-symbol-filename
+		      (propertize (format " . %s" (file-relative-name (lsp--uri-to-path uri) project-root))
+				  'face 'font-lock-comment-face)
+		    ""))
+	 (textual-representation
+	  (lsp-render-symbol-information symbol-information "."))
+	 (entry (concat typestr textual-representation pathstr)))
+    (puthash entry symbol-information lsp-ido--results)))
 
 (lsp-defun lsp-ido--jump-selected-candidate
   ((&SymbolInformation
@@ -65,23 +120,24 @@
 (defun lsp-ido--workspace-symbol (workspaces)
   "Search against WORKSPACES with PROMPT and INITIAL-INPUT."
   (let* ((lsp-ido--results (make-hash-table :test 'equal))
+	 (workspace-root (lsp-workspace-root))
 	 (raw-choices
 	  (with-lsp-workspaces workspaces
 	    (lsp-request
 	     "workspace/symbol"
 	     (lsp-make-workspace-symbol-params :query "")))))
     (mapc (lambda (it)
-	    (lsp-ido--transform-candidate it lsp-ido--results))
+	    (lsp-ido--transform-candidate it lsp-ido--results workspace-root))
 	  raw-choices)
     lsp-ido--results))
 
-
+;;;###autoload
 (defun lsp-ido-workspace-symbol ()
   "`ido' for lsp workspace/symbol."
   (interactive)
   (let* ((hash-table-candidates (lsp-ido--workspace-symbol (lsp-workspaces)))
 	 (choice (ido-completing-read
-		  "Workspace"
+		  "Workspace symbol:"
 		  (hash-table-keys hash-table-candidates))))
     (lsp-ido--jump-selected-candidate (gethash choice hash-table-candidates))))
 
