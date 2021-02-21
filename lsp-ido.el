@@ -32,7 +32,6 @@
 ;;; Code:
 
 (require 'ido)
-
 (require 'lsp-protocol)
 (require 'lsp-mode)
 
@@ -76,8 +75,7 @@
    "TPar"]          ; TypeParameter - 26
   "A vector of 26 itens representing the SymbolKind."
   :group 'lsp-ido
-  :type 'vector
-  )
+  :type 'vector)
 
 (defcustom lsp-ido-show-symbol-filename
   t
