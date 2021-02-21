@@ -1,14 +1,14 @@
-# LSP IDO integration
+* LSP IDO integration
 
 This package provides an interactive IDO interface to the workspace
 symbol functionality offered by ~lsp-mode~. For an alternative
 implementation based on ivy, see https://github.com/emacs-lsp/lsp-ivy
 
 
-# Screenshot
+* Screenshot
 #+caption: Demo
 [[file:demo.png]]
 
-# Commands
+* Commands
 
 - ~lsp-ido-workspace-symbol~ - workspace symbols for the current workspace
