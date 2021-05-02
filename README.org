@@ -1,6 +1,6 @@
 * LSP IDO integration
 
-;; EDIT: this functionality was integrated directly into `lsp-mode` https://github.com/emacs-lsp/lsp-mode/pull/2640  ;)
+*EDIT*: this functionality was integrated directly into `lsp-mode` https://github.com/emacs-lsp/lsp-mode/pull/2640  ;)
 
 This package provides an interactive IDO interface to the workspace
 symbol functionality offered by ~lsp-mode~. For an alternative
